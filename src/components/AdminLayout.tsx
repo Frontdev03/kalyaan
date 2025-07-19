@@ -15,7 +15,15 @@ import {
   CreditCard,
   BarChart3,
   Shield,
-  LogOut
+  LogOut,
+  Clock,
+  Trophy,
+  Calculator,
+  Calendar,
+  Target,
+  Dice6,
+  CircleDollarSign,
+  Activity
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -24,11 +32,36 @@ import { cn } from '@/lib/utils'
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
   { name: 'Users', href: '/users', icon: Users },
-  { name: 'Games', href: '/games', icon: GamepadIcon },
+  { 
+    name: 'Games', 
+    icon: GamepadIcon,
+    subItems: [
+      { name: 'All Games', href: '/games', icon: GamepadIcon },
+      { name: 'Main Bazaar', href: '/games/main-bazaar', icon: Target },
+      { name: 'Milan Day', href: '/games/milan-day', icon: Clock },
+      { name: 'Milan Night', href: '/games/milan-night', icon: Clock },
+      { name: 'Rajdhani Day', href: '/games/rajdhani-day', icon: Trophy },
+      { name: 'Rajdhani Night', href: '/games/rajdhani-night', icon: Trophy },
+      { name: 'Gali Disawar', href: '/games/gali-disawar', icon: Dice6 },
+      { name: 'Time Bazaar', href: '/games/time-bazaar', icon: Calendar },
+      { name: 'SriGanesh', href: '/games/sriganesh', icon: Calculator },
+      { name: 'Faridabad', href: '/games/faridabad', icon: Activity },
+      { name: 'Ghaziabad', href: '/games/ghaziabad', icon: Activity }
+    ]
+  },
   { name: 'Bets', href: '/bets', icon: TrendingUp },
   { name: 'Transactions', href: '/transactions', icon: CreditCard },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-  { name: 'Reports', href: '/reports', icon: FileText },
+  { 
+    name: 'Reports', 
+    icon: FileText,
+    subItems: [
+      { name: 'Daily Reports', href: '/reports/daily', icon: Calendar },
+      { name: 'Game Reports', href: '/reports/games', icon: GamepadIcon },
+      { name: 'User Reports', href: '/reports/users', icon: Users },
+      { name: 'Financial Reports', href: '/reports/financial', icon: CircleDollarSign }
+    ]
+  },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
 
@@ -117,6 +150,15 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
 function SidebarContent() {
   const pathname = usePathname()
+  const [expandedItems, setExpandedItems] = useState<string[]>([])
+
+  const toggleExpanded = (itemName: string) => {
+    setExpandedItems(prev => 
+      prev.includes(itemName) 
+        ? prev.filter(name => name !== itemName)
+        : [...prev, itemName]
+    )
+  }
 
   return (
     <div className="flex flex-col flex-1">
@@ -127,27 +169,82 @@ function SidebarContent() {
       <div className="flex-1 flex flex-col overflow-y-auto">
         <nav className="flex-1 px-2 py-4 bg-white space-y-1">
           {navigation.map((item) => {
-            const isActive = pathname === item.href
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  isActive
-                    ? 'bg-indigo-100 text-indigo-700'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
-                  'group flex items-center px-2 py-2 text-sm font-medium rounded-md'
-                )}
-              >
-                <item.icon
-                  className={cn(
-                    isActive ? 'text-indigo-500' : 'text-gray-400 group-hover:text-gray-500',
-                    'mr-3 h-5 w-5'
+            const hasSubItems = 'subItems' in item
+            const isExpanded = expandedItems.includes(item.name)
+            
+            if (hasSubItems) {
+              return (
+                <div key={item.name}>
+                  <button
+                    onClick={() => toggleExpanded(item.name)}
+                    className="w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                  >
+                    <item.icon className="mr-3 h-5 w-5 text-gray-400 group-hover:text-gray-500" />
+                    {item.name}
+                    <svg
+                      className={cn(
+                        "ml-auto h-4 w-4 transition-transform",
+                        isExpanded ? "rotate-90" : "rotate-0"
+                      )}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                  {isExpanded && (
+                    <div className="ml-6 mt-1 space-y-1">
+                      {item.subItems?.map((subItem) => {
+                        const isActive = pathname === subItem.href
+                        return (
+                          <Link
+                            key={subItem.name}
+                            href={subItem.href}
+                            className={cn(
+                              isActive
+                                ? 'bg-indigo-100 text-indigo-700'
+                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                              'group flex items-center px-2 py-2 text-sm font-medium rounded-md'
+                            )}
+                          >
+                            <subItem.icon
+                              className={cn(
+                                isActive ? 'text-indigo-500' : 'text-gray-400 group-hover:text-gray-500',
+                                'mr-3 h-4 w-4'
+                              )}
+                            />
+                            {subItem.name}
+                          </Link>
+                        )
+                      })}
+                    </div>
                   )}
-                />
-                {item.name}
-              </Link>
-            )
+                </div>
+              )
+            } else {
+              const isActive = pathname === item.href
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href!}
+                  className={cn(
+                    isActive
+                      ? 'bg-indigo-100 text-indigo-700'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                    'group flex items-center px-2 py-2 text-sm font-medium rounded-md'
+                  )}
+                >
+                  <item.icon
+                    className={cn(
+                      isActive ? 'text-indigo-500' : 'text-gray-400 group-hover:text-gray-500',
+                      'mr-3 h-5 w-5'
+                    )}
+                  />
+                  {item.name}
+                </Link>
+              )
+            }
           })}
         </nav>
       </div>
